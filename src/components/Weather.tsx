@@ -24,15 +24,23 @@ interface LocationWeather {
 }
 
 const CITIES = [
-  { id: 'seoul', name: '서울특별시' },
-  { id: 'busan', name: '부산광역시' },
-  { id: 'incheon', name: '인천광역시' },
-  { id: 'daegu', name: '대구광역시' },
-  { id: 'daejeon', name: '대전광역시' },
-  { id: 'gwangju', name: '광주광역시' },
-  { id: 'ulsan', name: '울산광역시' },
-  { id: 'sejong', name: '세종특별자치시' },
-  { id: 'jeju', name: '제주특별자치도' }
+  { id: 'gyeonggi', name: '경기도', enName: 'Suwon' },        // 약 1,370만
+  { id: 'seoul', name: '서울특별시', enName: 'Seoul' },       // 약 940만
+  { id: 'busan', name: '부산광역시', enName: 'Busan' },       // 약 330만
+  { id: 'gyeongnam', name: '경상남도', enName: 'Changwon' },  // 약 330만
+  { id: 'incheon', name: '인천광역시', enName: 'Incheon' },   // 약 290만
+  { id: 'gyeongbuk', name: '경상북도', enName: 'Andong' },    // 약 260만
+  { id: 'daegu', name: '대구광역시', enName: 'Daegu' },       // 약 240만
+  { id: 'jeonnam', name: '전라남도', enName: 'Muan' },        // 약 180만
+  { id: 'chungnam', name: '충청남도', enName: 'Hongseong' },  // 약 210만
+  { id: 'jeonbuk', name: '전라북도', enName: 'Jeonju' },      // 약 180만
+  { id: 'gangwon', name: '강원도', enName: 'Chuncheon' },     // 약 150만
+  { id: 'chungbuk', name: '충청북도', enName: 'Cheongju' },   // 약 160만
+  { id: 'gwangju', name: '광주광역시', enName: 'Gwangju' },   // 약 140만
+  { id: 'daejeon', name: '대전광역시', enName: 'Daejeon' },   // 약 140만
+  { id: 'ulsan', name: '울산광역시', enName: 'Ulsan' },       // 약 110만
+  { id: 'jeju', name: '제주특별자치도', enName: 'Jeju' },     // 약 67만
+  { id: 'sejong', name: '세종특별자치시', enName: 'Sejong' }  // 약 37만
 ];
 
 export default function Weather() {
@@ -105,15 +113,18 @@ export default function Weather() {
     return () => clearInterval(interval);
   }, [selectedLocation, fetchWeatherData]);
 
-  const addLocation = async (cityName: string) => {
-    if (!cityName) return;
+  const addLocation = async (cityId: string) => {
+    if (!cityId) return;
+    
+    const city = CITIES.find(c => c.id === cityId);
+    if (!city) return;
 
     setLoading(true);
-    const weatherData = await fetchWeatherData(cityName);
+    const weatherData = await fetchWeatherData(city.enName);
     if (weatherData) {
       setSelectedLocation({
         id: Date.now(),
-        city: cityName,
+        city: city.name,
         data: weatherData
       });
     }
@@ -205,14 +216,14 @@ export default function Weather() {
       </div>
 
       <motion.select
-        value={selectedLocation?.city || ''}
+        value={selectedLocation?.city ? CITIES.find(c => c.name === selectedLocation.city)?.id || '' : ''}
         onChange={(e) => addLocation(e.target.value)}
         className="mt-6 px-4 py-2.5 text-base bg-gray-800/70 border border-gray-700/50 rounded-lg text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all duration-200"
         whileHover={{ scale: 1.02 }}
       >
         <option value="">도시 선택</option>
         {CITIES.map(city => (
-          <option key={city.id} value={city.name} className="bg-gray-800 text-gray-300">
+          <option key={city.id} value={city.id} className="bg-gray-800 text-gray-300">
             {city.name}
           </option>
         ))}
