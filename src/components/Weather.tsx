@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface WeatherData {
@@ -42,7 +42,7 @@ export default function Weather() {
   const [error, setError] = useState<string | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  const fetchWeatherData = async (city: string) => {
+  const fetchWeatherData = useCallback(async (city: string) => {
     try {
       const API_KEY = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY;
       if (!API_KEY) {
@@ -59,10 +59,11 @@ export default function Weather() {
 
       return await response.json();
     } catch (err) {
-      setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다');
+      const errorMessage = err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다';
+      setError(errorMessage);
       return null;
     }
-  };
+  }, []);
 
   useEffect(() => {
     const initializeWeather = async () => {
@@ -79,7 +80,7 @@ export default function Weather() {
     };
 
     initializeWeather();
-  }, []);
+  }, [fetchWeatherData]);
 
   useEffect(() => {
     if (selectedLocations.length === 0) return;
@@ -98,7 +99,7 @@ export default function Weather() {
 
     const interval = setInterval(updateWeather, 5 * 60 * 1000);
     return () => clearInterval(interval);
-  }, [selectedLocations.length]);
+  }, [selectedLocations, fetchWeatherData]);
 
   const addLocation = async (cityName: string) => {
     if (!cityName) return;
@@ -163,6 +164,18 @@ export default function Weather() {
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
         />
+      </motion.div>
+    );
+  }
+
+  if (error) {
+    return (
+      <motion.div 
+        className="p-8 bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-lg border border-gray-700"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+      >
+        <p className="text-red-400">{error}</p>
       </motion.div>
     );
   }
