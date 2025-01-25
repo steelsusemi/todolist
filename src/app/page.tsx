@@ -34,7 +34,7 @@ export default function Home() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="text-gray-400 text-lg"
           >
-            Manage your tasks efficiently with real-time weather updates
+      
           </motion.p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

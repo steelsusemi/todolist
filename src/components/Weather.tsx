@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
 
 interface WeatherData {
@@ -23,37 +23,328 @@ interface LocationWeather {
   data: WeatherData | null;
 }
 
-const CITIES = [
-  { id: 'gyeonggi', name: '경기도', enName: 'Suwon' },        // 약 1,370만
-  { id: 'seoul', name: '서울특별시', enName: 'Seoul' },       // 약 940만
-  { id: 'busan', name: '부산광역시', enName: 'Busan' },       // 약 330만
-  { id: 'gyeongnam', name: '경상남도', enName: 'Changwon' },  // 약 330만
-  { id: 'incheon', name: '인천광역시', enName: 'Incheon' },   // 약 290만
-  { id: 'gyeongbuk', name: '경상북도', enName: 'Andong' },    // 약 260만
-  { id: 'daegu', name: '대구광역시', enName: 'Daegu' },       // 약 240만
-  { id: 'jeonnam', name: '전라남도', enName: 'Muan' },        // 약 180만
-  { id: 'chungnam', name: '충청남도', enName: 'Hongseong' },  // 약 210만
-  { id: 'jeonbuk', name: '전라북도', enName: 'Jeonju' },      // 약 180만
-  { id: 'gangwon', name: '강원도', enName: 'Chuncheon' },     // 약 150만
-  { id: 'chungbuk', name: '충청북도', enName: 'Cheongju' },   // 약 160만
-  { id: 'gwangju', name: '광주광역시', enName: 'Gwangju' },   // 약 140만
-  { id: 'daejeon', name: '대전광역시', enName: 'Daejeon' },   // 약 140만
-  { id: 'ulsan', name: '울산광역시', enName: 'Ulsan' },       // 약 110만
-  { id: 'jeju', name: '제주특별자치도', enName: 'Jeju' },     // 약 67만
-  { id: 'sejong', name: '세종특별자치시', enName: 'Sejong' }  // 약 37만
-];
+interface SelectOption {
+  value: string;
+  label: string;
+  enName: string;
+}
+
+const CITIES = {
+  metropolitan: [
+    { id: 'seoul', name: '서울특별시', enName: 'Seoul' },
+    { id: 'busan', name: '부산광역시', enName: 'Busan' },
+    { id: 'incheon', name: '인천광역시', enName: 'Incheon' },
+    { id: 'daegu', name: '대구광역시', enName: 'Daegu' },
+    { id: 'gwangju', name: '광주광역시', enName: 'Gwangju' },
+    { id: 'daejeon', name: '대전광역시', enName: 'Daejeon' },
+    { id: 'ulsan', name: '울산광역시', enName: 'Ulsan' }
+  ],
+  province: [
+    {
+      id: 'gyeonggi',
+      name: '경기도',
+      districts: [
+        { id: 'suwon', name: '수원시', enName: 'Suwon' },
+        { id: 'seongnam', name: '성남시', enName: 'Seongnam' },
+        { id: 'anyang', name: '안양시', enName: 'Anyang' },
+        { id: 'bucheon', name: '부천시', enName: 'Bucheon' },
+        { id: 'goyang', name: '고양시', enName: 'Goyang' },
+        { id: 'yongin', name: '용인시', enName: 'Yongin' },
+        { id: 'hwaseong', name: '화성시', enName: 'Hwaseong' },
+        { id: 'pyeongtaek', name: '평택시', enName: 'Pyeongtaek' },
+        { id: 'uijeongbu', name: '의정부시', enName: 'Uijeongbu' },
+        { id: 'siheung', name: '시흥시', enName: 'Siheung' },
+        { id: 'paju', name: '파주시', enName: 'Paju' },
+        { id: 'gimpo', name: '김포시', enName: 'Gimpo' },
+        { id: 'gwangmyeong', name: '광명시', enName: 'Gwangmyeong' },
+        { id: 'gwangju', name: '광주시', enName: 'Gwangju-si' },
+        { id: 'icheon', name: '이천시', enName: 'Icheon' },
+        { id: 'yangju', name: '양주시', enName: 'Yangju' },
+        { id: 'guri', name: '구리시', enName: 'Guri' },
+        { id: 'namyangju', name: '남양주시', enName: 'Namyangju' },
+        { id: 'ansan', name: '안산시', enName: 'Ansan' },
+        { id: 'gunpo', name: '군포시', enName: 'Gunpo' },
+        { id: 'hanam', name: '하남시', enName: 'Hanam' },
+        { id: 'osan', name: '오산시', enName: 'Osan' },
+        { id: 'anseong', name: '안성시', enName: 'Anseong' },
+        { id: 'pocheon', name: '포천시', enName: 'Pocheon' },
+        { id: 'dongducheon', name: '동두천시', enName: 'Dongducheon' },
+        { id: 'yeoju', name: '여주시', enName: 'Yeoju' }
+      ]
+    },
+    {
+      id: 'gangwon',
+      name: '강원도',
+      districts: [
+        { id: 'chuncheon', name: '춘천시', enName: 'Chuncheon' },
+        { id: 'wonju', name: '원주시', enName: 'Wonju' },
+        { id: 'gangneung', name: '강릉시', enName: 'Gangneung' },
+        { id: 'donghae', name: '동해시', enName: 'Donghae' },
+        { id: 'taebaek', name: '태백시', enName: 'Taebaek' },
+        { id: 'sokcho', name: '속초시', enName: 'Sokcho' },
+        { id: 'samcheok', name: '삼척시', enName: 'Samcheok' }
+      ]
+    },
+    {
+      id: 'chungbuk',
+      name: '충청북도',
+      districts: [
+        { id: 'cheongju', name: '청주시', enName: 'Cheongju' },
+        { id: 'chungju', name: '충주시', enName: 'Chungju' },
+        { id: 'jecheon', name: '제천시', enName: 'Jecheon' },
+        { id: 'boeun', name: '보은군', enName: 'Boeun' },
+        { id: 'okcheon', name: '옥천군', enName: 'Okcheon' },
+        { id: 'yeongdong', name: '영동군', enName: 'Yeongdong' },
+        { id: 'jincheon', name: '진천군', enName: 'Jincheon' },
+        { id: 'goesan', name: '괴산군', enName: 'Goesan' },
+        { id: 'eumseong', name: '음성군', enName: 'Eumseong' },
+        { id: 'danyang', name: '단양군', enName: 'Danyang' }
+      ]
+    },
+    {
+      id: 'chungnam',
+      name: '충청남도',
+      districts: [
+        { id: 'cheonan', name: '천안시', enName: 'Cheonan' },
+        { id: 'gongju', name: '공주시', enName: 'Gongju' },
+        { id: 'boryeong', name: '보령시', enName: 'Boryeong' },
+        { id: 'asan', name: '아산시', enName: 'Asan' },
+        { id: 'seosan', name: '서산시', enName: 'Seosan' },
+        { id: 'nonsan', name: '논산시', enName: 'Nonsan' },
+        { id: 'gyeryong', name: '계룡시', enName: 'Gyeryong' },
+        { id: 'dangjin', name: '당진시', enName: 'Dangjin' }
+      ]
+    },
+    {
+      id: 'jeonbuk',
+      name: '전라북도',
+      districts: [
+        { id: 'jeonju', name: '전주시', enName: 'Jeonju' },
+        { id: 'gunsan', name: '군산시', enName: 'Gunsan' },
+        { id: 'iksan', name: '익산시', enName: 'Iksan' },
+        { id: 'jeongeup', name: '정읍시', enName: 'Jeongeup' },
+        { id: 'namwon', name: '남원시', enName: 'Namwon' },
+        { id: 'gimje', name: '김제시', enName: 'Gimje' },
+        { id: 'wanju', name: '완주군', enName: 'Wanju' },
+        { id: 'jinan', name: '진안군', enName: 'Jinan' },
+        { id: 'muju', name: '무주군', enName: 'Muju' },
+        { id: 'jangsu', name: '장수군', enName: 'Jangsu' },
+        { id: 'imsil', name: '임실군', enName: 'Imsil' },
+        { id: 'sunchang', name: '순창군', enName: 'Sunchang' },
+        { id: 'gochang', name: '고창군', enName: 'Gochang' },
+        { id: 'buan', name: '부안군', enName: 'Buan' }
+      ]
+    },
+    {
+      id: 'jeonnam',
+      name: '전라남도',
+      districts: [
+        { id: 'mokpo', name: '목포시', enName: 'Mokpo' },
+        { id: 'yeosu', name: '여수시', enName: 'Yeosu' },
+        { id: 'suncheon', name: '순천시', enName: 'Suncheon' },
+        { id: 'naju', name: '나주시', enName: 'Naju' },
+        { id: 'gwangyang', name: '광양시', enName: 'Gwangyang' },
+        { id: 'damyang', name: '담양군', enName: 'Damyang' },
+        { id: 'gokseong', name: '곡성군', enName: 'Gokseong' },
+        { id: 'gurye', name: '구례군', enName: 'Gurye' },
+        { id: 'goheung', name: '고흥군', enName: 'Goheung' },
+        { id: 'boseong', name: '보성군', enName: 'Boseong' },
+        { id: 'hwasun', name: '화순군', enName: 'Hwasun' },
+        { id: 'jangheung', name: '장흥군', enName: 'Jangheung' },
+        { id: 'gangjin', name: '강진군', enName: 'Gangjin' },
+        { id: 'haenam', name: '해남군', enName: 'Haenam' },
+        { id: 'yeongam', name: '영암군', enName: 'Yeongam' },
+        { id: 'muan', name: '무안군', enName: 'Muan' },
+        { id: 'hampyeong', name: '함평군', enName: 'Hampyeong' },
+        { id: 'yeonggwang', name: '영광군', enName: 'Yeonggwang' },
+        { id: 'jangseong', name: '장성군', enName: 'Jangseong' },
+        { id: 'wando', name: '완도군', enName: 'Wando' },
+        { id: 'jindo', name: '진도군', enName: 'Jindo' },
+        { id: 'sinan', name: '신안군', enName: 'Sinan' }
+      ]
+    },
+    {
+      id: 'gyeongbuk',
+      name: '경상북도',
+      districts: [
+        { id: 'pohang', name: '포항시', enName: 'Pohang' },
+        { id: 'gyeongju', name: '경주시', enName: 'Gyeongju' },
+        { id: 'gimcheon', name: '김천시', enName: 'Gimcheon' },
+        { id: 'andong', name: '안동시', enName: 'Andong' },
+        { id: 'gumi', name: '구미시', enName: 'Gumi' },
+        { id: 'yeongju', name: '영주시', enName: 'Yeongju' },
+        { id: 'yeongcheon', name: '영천시', enName: 'Yeongcheon' },
+        { id: 'sangju', name: '상주시', enName: 'Sangju' },
+        { id: 'mungyeong', name: '문경시', enName: 'Mungyeong' },
+        { id: 'gyeongsan', name: '경산시', enName: 'Gyeongsan' }
+      ]
+    },
+    {
+      id: 'gyeongnam',
+      name: '경상남도',
+      districts: [
+        { id: 'changwon', name: '창원시', enName: 'Changwon' },
+        { id: 'jinju', name: '진주시', enName: 'Jinju' },
+        { id: 'tongyeong', name: '통영시', enName: 'Tongyeong' },
+        { id: 'sacheon', name: '사천시', enName: 'Sacheon' },
+        { id: 'gimhae', name: '김해시', enName: 'Gimhae' },
+        { id: 'miryang', name: '밀양시', enName: 'Miryang' },
+        { id: 'geoje', name: '거제시', enName: 'Geoje' },
+        { id: 'yangsan', name: '양산시', enName: 'Yangsan' },
+        { id: 'uiryeong', name: '의령군', enName: 'Uiryeong' },
+        { id: 'haman', name: '함안군', enName: 'Haman' },
+        { id: 'changnyeong', name: '창녕군', enName: 'Changnyeong' },
+        { id: 'goseong', name: '고성군', enName: 'Goseong' },
+        { id: 'namhae', name: '남해군', enName: 'Namhae' },
+        { id: 'hadong', name: '하동군', enName: 'Hadong' },
+        { id: 'sancheong', name: '산청군', enName: 'Sancheong' },
+        { id: 'hamyang', name: '함양군', enName: 'Hamyang' },
+        { id: 'geochang', name: '거창군', enName: 'Geochang' },
+        { id: 'hapcheon', name: '합천군', enName: 'Hapcheon' }
+      ]
+    }
+  ],
+  special: [
+    { id: 'sejong', name: '세종특별자치시', enName: 'Sejong' },
+    {
+      id: 'jeju',
+      name: '제주특별자치도',
+      districts: [
+        { id: 'jeju', name: '제주시', enName: 'Jeju City' },
+        { id: 'seogwipo', name: '서귀포시', enName: 'Seogwipo' }
+      ]
+    }
+  ]
+};
 
 export default function Weather() {
   const [selectedLocation, setSelectedLocation] = useState<LocationWeather | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [focusedIndex, setFocusedIndex] = useState(-1);
+
+  const groupedOptions = useMemo(() => {
+    const metropolitan: SelectOption[] = [];
+    const province: SelectOption[] = [];
+    const special: SelectOption[] = [];
+    
+    // Add metropolitan cities
+    CITIES.metropolitan.forEach(city => {
+      metropolitan.push({
+        value: `metropolitan:${city.id}`,
+        label: city.name,
+        enName: city.enName
+      });
+    });
+
+    // Add province districts
+    CITIES.province.forEach(prov => {
+      prov.districts.forEach(district => {
+        province.push({
+          value: `province:${prov.id}:${district.id}`,
+          label: `${prov.name} ${district.name}`,
+          enName: district.enName
+        });
+      });
+    });
+
+    // Add special cities/districts
+    CITIES.special.forEach(region => {
+      if ('districts' in region) {
+        region.districts.forEach(district => {
+          special.push({
+            value: `special:${region.id}:${district.id}`,
+            label: `${region.name} ${district.name}`,
+            enName: district.enName
+          });
+        });
+      } else {
+        special.push({
+          value: `special:${region.id}`,
+          label: region.name,
+          enName: region.enName
+        });
+      }
+    });
+
+    return {
+      metropolitan,
+      province,
+      special
+    };
+  }, []);
+
+  const filteredGroups = useMemo(() => {
+    if (!searchTerm) return groupedOptions;
+    
+    const searchLower = searchTerm.toLowerCase();
+    return {
+      metropolitan: groupedOptions.metropolitan.filter(opt => 
+        opt.label.toLowerCase().includes(searchLower)
+      ),
+      province: groupedOptions.province.filter(opt => 
+        opt.label.toLowerCase().includes(searchLower)
+      ),
+      special: groupedOptions.special.filter(opt => 
+        opt.label.toLowerCase().includes(searchLower)
+      )
+    };
+  }, [searchTerm, groupedOptions]);
+
+  const hasResults = useMemo(() => {
+    return (
+      filteredGroups.metropolitan.length > 0 ||
+      filteredGroups.province.length > 0 ||
+      filteredGroups.special.length > 0
+    );
+  }, [filteredGroups]);
+
+  const filteredOptions = useMemo(() => {
+    return Object.values(filteredGroups).flat();
+  }, [filteredGroups]);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!searchTerm || !hasResults) {
+      setFocusedIndex(-1);
+      return;
+    }
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setFocusedIndex(prev => 
+          prev < filteredOptions.length - 1 ? prev + 1 : prev
+        );
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setFocusedIndex(prev => prev > 0 ? prev - 1 : prev);
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (focusedIndex >= 0 && focusedIndex < filteredOptions.length) {
+          const selected = filteredOptions[focusedIndex];
+          handleLocationChange({
+            value: selected.value,
+            label: selected.label,
+            enName: selected.enName
+          });
+          setSearchTerm('');
+          setFocusedIndex(-1);
+        }
+        break;
+      case 'Escape':
+        setSearchTerm('');
+        setFocusedIndex(-1);
+        break;
+    }
+  };
 
   const fetchWeatherData = useCallback(async (city: string) => {
     try {
       const API_KEY = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY;
       if (!API_KEY) {
-        const error = new Error('OpenWeather API key is not configured');
-        setError(error.message);
         return null;
       }
 
@@ -62,16 +353,14 @@ export default function Weather() {
       );
 
       if (!response.ok) {
-        const error = new Error('날씨 정보를 가져오는데 실패했습니다');
-        setError(error.message);
+        if (response.status === 404) {
+          return { cod: "404", message: "city not found" };
+        }
         return null;
       }
 
-      setError(null);
       return await response.json();
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다';
-      setError(errorMessage);
       return null;
     }
   }, []);
@@ -83,7 +372,7 @@ export default function Weather() {
       if (weatherData) {
         setSelectedLocation({
           id: 1,
-          city: 'Seoul',
+          city: '서울특별시',
           data: weatherData
         });
       }
@@ -113,19 +402,27 @@ export default function Weather() {
     return () => clearInterval(interval);
   }, [selectedLocation, fetchWeatherData]);
 
-  const addLocation = async (cityId: string) => {
-    if (!cityId) return;
-    
-    const city = CITIES.find(c => c.id === cityId);
-    if (!city) return;
+  const handleLocationChange = (selected: SelectOption | null) => {
+    if (!selected) return;
+    addLocation(selected.value, selected.label, selected.enName);
+  };
+
+  const addLocation = async (value: string, cityName: string, enName: string) => {
+    if (!value || !cityName || !enName) return;
 
     setLoading(true);
-    const weatherData = await fetchWeatherData(city.enName);
-    if (weatherData) {
+    const weatherData = await fetchWeatherData(enName);
+    if (weatherData && weatherData.cod !== "404") {
       setSelectedLocation({
         id: Date.now(),
-        city: city.name,
+        city: cityName,
         data: weatherData
+      });
+    } else {
+      setSelectedLocation({
+        id: Date.now(),
+        city: `${cityName} (날씨 정보가 없습니다)`,
+        data: selectedLocation?.data || null
       });
     }
     setLoading(false);
@@ -167,10 +464,13 @@ export default function Weather() {
     >
       <div className="flex flex-col items-center gap-2 mb-6">
         <motion.h2 
-          className="text-2xl font-bold bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 text-transparent bg-clip-text"
+          className={`text-2xl font-bold truncate max-w-full ${
+            selectedLocation?.city.includes('날씨 정보가 없습니다')
+              ? 'text-red-400'
+              : 'bg-gradient-to-r from-purple-500 to-pink-500 text-transparent bg-clip-text'
+          }`}
         >
-          {selectedLocation?.data ? 
-            CITIES.find(c => c.name === selectedLocation.city)?.name : '서울특별시'}
+          {selectedLocation?.city || '서울특별시'}
         </motion.h2>
         <p className="text-sm text-gray-400">실시간 날씨 정보</p>
       </div>
@@ -200,7 +500,7 @@ export default function Weather() {
         </motion.div>
       )}
 
-      <div className="grid grid-cols-2 gap-8 w-full max-w-md">
+      <div className="grid grid-cols-2 gap-8 w-full max-w-md mb-6">
         <div className="flex flex-col items-center p-4">
           <p className="text-gray-400 text-sm mb-2">체감 온도</p>
           <p className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 text-transparent bg-clip-text">
@@ -215,19 +515,111 @@ export default function Weather() {
         </div>
       </div>
 
-      <motion.select
-        value={selectedLocation?.city ? CITIES.find(c => c.name === selectedLocation.city)?.id || '' : ''}
-        onChange={(e) => addLocation(e.target.value)}
-        className="mt-6 px-4 py-2.5 text-base bg-gray-800/70 border border-gray-700/50 rounded-lg text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all duration-200"
-        whileHover={{ scale: 1.02 }}
-      >
-        <option value="">도시 선택</option>
-        {CITIES.map(city => (
-          <option key={city.id} value={city.id} className="bg-gray-800 text-gray-300">
-            {city.name}
-          </option>
-        ))}
-      </motion.select>
+      <div className="w-full max-w-xs space-y-4 p-4 bg-gray-800/30 rounded-lg border border-gray-700/50">
+        <div className="relative w-full">
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setFocusedIndex(-1);
+            }}
+            onKeyDown={handleKeyDown}
+            placeholder="지역명으로 검색..."
+            className="w-full px-4 py-2 bg-gray-800/70 border border-gray-700/50 rounded-lg text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent"
+          />
+          {searchTerm && (
+            <button
+              onClick={() => {
+                setSearchTerm('');
+                setFocusedIndex(-1);
+              }}
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-gray-300"
+            >
+              ✕
+            </button>
+          )}
+          {searchTerm && hasResults && (
+            <div className="absolute w-full z-10">
+              <ul className="w-full mt-1 max-h-60 overflow-auto bg-gray-800/90 border border-gray-700/50 rounded-lg text-gray-300">
+                {filteredOptions.map((opt, index) => (
+                  <li 
+                    key={opt.value}
+                    className={`px-4 py-2 cursor-pointer transition-colors ${
+                      index === focusedIndex 
+                        ? 'bg-gray-700/70 text-white'
+                        : 'hover:bg-gray-700/50'
+                    }`}
+                    onClick={() => {
+                      handleLocationChange({
+                        value: opt.value,
+                        label: opt.label,
+                        enName: opt.enName
+                      });
+                      setSearchTerm('');
+                      setFocusedIndex(-1);
+                    }}
+                    onMouseEnter={() => setFocusedIndex(index)}
+                  >
+                    {opt.label}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {searchTerm && !hasResults && (
+            <div className="absolute inset-x-0 top-full mt-1 p-2 bg-gray-800/90 border border-gray-700/50 rounded-lg text-gray-400 text-sm">
+              검색 결과가 없습니다
+            </div>
+          )}
+        </div>
+
+        <div className="relative w-full">
+          <select
+            value={selectedLocation?.city ? 
+              Object.values(groupedOptions)
+                .flat()
+                .find(opt => opt.label === selectedLocation.city)?.value : ''
+            }
+            onChange={(e) => {
+              const selected = Object.values(groupedOptions)
+                .flat()
+                .find(opt => opt.value === e.target.value);
+              if (selected) {
+                handleLocationChange({
+                  value: selected.value,
+                  label: selected.label,
+                  enName: selected.enName
+                });
+              }
+            }}
+            className="w-full px-4 py-2.5 text-base bg-gray-800/70 border border-gray-700/50 rounded-lg text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all duration-200"
+          >
+            <option value="">지역 선택</option>
+            <optgroup label="광역시">
+              {groupedOptions.metropolitan.map(opt => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </optgroup>
+            <optgroup label="도">
+              {groupedOptions.province.map(opt => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </optgroup>
+            <optgroup label="특별자치시/도">
+              {groupedOptions.special.map(opt => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </optgroup>
+          </select>
+        </div>
+      </div>
     </motion.div>
   );
 } 
