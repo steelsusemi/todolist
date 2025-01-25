@@ -46,7 +46,9 @@ export default function Weather() {
     try {
       const API_KEY = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY;
       if (!API_KEY) {
-        throw new Error('OpenWeather API key is not configured');
+        const error = new Error('OpenWeather API key is not configured');
+        setError(error.message);
+        return null;
       }
 
       const response = await fetch(
@@ -54,9 +56,12 @@ export default function Weather() {
       );
 
       if (!response.ok) {
-        throw new Error('날씨 정보를 가져오는데 실패했습니다');
+        const error = new Error('날씨 정보를 가져오는데 실패했습니다');
+        setError(error.message);
+        return null;
       }
 
+      setError(null);
       return await response.json();
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다';
@@ -97,7 +102,9 @@ export default function Weather() {
       setLoading(false);
     };
 
+    updateWeather();
     const interval = setInterval(updateWeather, 5 * 60 * 1000);
+    
     return () => clearInterval(interval);
   }, [selectedLocations, fetchWeatherData]);
 
@@ -122,7 +129,7 @@ export default function Weather() {
         data: weatherData
       };
       setSelectedLocations(prev => [...prev, newLocation]);
-      setCurrentIndex(selectedLocations.length);
+      setCurrentIndex(prev => prev.length);
     }
     setLoading(false);
   };
