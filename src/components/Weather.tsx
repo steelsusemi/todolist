@@ -251,7 +251,7 @@ export default function Weather() {
 
     // Add special cities/districts
     CITIES.special.forEach(region => {
-      if ('districts' in region) {
+      if ('districts' in region && region.districts) {
         region.districts.forEach(district => {
           special.push({
             value: `special:${region.id}:${district.id}`,
