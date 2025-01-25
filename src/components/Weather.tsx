@@ -35,8 +35,6 @@ const CITIES = [
   { id: 'jeju', name: '제주특별자치도' }
 ];
 
-const MAX_LOCATIONS = 4;
-
 export default function Weather() {
   const [selectedLocation, setSelectedLocation] = useState<LocationWeather | null>(null);
   const [loading, setLoading] = useState(true);

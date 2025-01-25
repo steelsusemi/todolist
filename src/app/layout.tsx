@@ -25,7 +25,7 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body className={`${inter.className} antialiased`}>
-        <div className={`${robotoMono.variable} font-mono`}>
+        <div className={`${robotoMono.className} font-mono`}>
           {children}
         </div>
       </body>
