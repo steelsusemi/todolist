@@ -24,14 +24,15 @@ interface LocationWeather {
 }
 
 const CITIES = [
-  { id: 1, name: 'Seoul', korName: '서울' },
-  { id: 2, name: 'Busan', korName: '부산' },
-  { id: 3, name: 'Incheon', korName: '인천' },
-  { id: 4, name: 'Daegu', korName: '대구' },
-  { id: 5, name: 'Daejeon', korName: '대전' },
-  { id: 6, name: 'Gwangju', korName: '광주' },
-  { id: 7, name: 'Ulsan', korName: '울산' },
-  { id: 8, name: 'Jeju', korName: '제주' },
+  { id: 'seoul', name: '서울특별시' },
+  { id: 'busan', name: '부산광역시' },
+  { id: 'incheon', name: '인천광역시' },
+  { id: 'daegu', name: '대구광역시' },
+  { id: 'daejeon', name: '대전광역시' },
+  { id: 'gwangju', name: '광주광역시' },
+  { id: 'ulsan', name: '울산광역시' },
+  { id: 'sejong', name: '세종특별자치시' },
+  { id: 'jeju', name: '제주특별자치도' }
 ];
 
 const MAX_LOCATIONS = 4;
@@ -160,7 +161,7 @@ export default function Weather() {
           className="text-2xl font-bold bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 text-transparent bg-clip-text"
         >
           {selectedLocation?.data ? 
-            CITIES.find(c => c.name === selectedLocation.city)?.korName : '서울'}
+            CITIES.find(c => c.name === selectedLocation.city)?.name : '서울특별시'}
         </motion.h2>
         <p className="text-sm text-gray-400">실시간 날씨 정보</p>
       </div>
@@ -208,13 +209,13 @@ export default function Weather() {
       <motion.select
         value={selectedLocation?.city || ''}
         onChange={(e) => addLocation(e.target.value)}
-        className="mt-6 px-6 py-2 bg-gray-900/50 border border-gray-600/30 rounded-lg text-gray-300 focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20"
-        whileHover={{ scale: 1.05 }}
+        className="mt-6 px-4 py-2.5 text-base bg-gray-800/70 border border-gray-700/50 rounded-lg text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all duration-200"
+        whileHover={{ scale: 1.02 }}
       >
         <option value="">도시 선택</option>
         {CITIES.map(city => (
-          <option key={city.id} value={city.name}>
-            {city.korName}
+          <option key={city.id} value={city.name} className="bg-gray-800 text-gray-300">
+            {city.name}
           </option>
         ))}
       </motion.select>
