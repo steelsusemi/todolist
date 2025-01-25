@@ -129,7 +129,7 @@ export default function Weather() {
         data: weatherData
       };
       setSelectedLocations(prev => [...prev, newLocation]);
-      setCurrentIndex(prev => prev.length);
+      setCurrentIndex(selectedLocations.length);
     }
     setLoading(false);
   };
