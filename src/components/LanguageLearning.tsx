@@ -93,7 +93,7 @@ export default function LanguageLearning() {
         <div className="bg-gray-900/50 backdrop-blur-lg rounded-xl p-6 space-y-6 border border-gray-800/50">
           <div>
             <div className="flex items-center justify-between mb-3">
-              <p className="text-sm font-medium bg-gradient-to-r from-blue-400 to-blue-300 text-transparent bg-clip-text">English</p>
+              <p className="text-lg font-medium bg-gradient-to-r from-blue-400 to-blue-300 text-transparent bg-clip-text">English</p>
               {currentSentence?.en && (
                 <motion.button
                   onClick={() => speakText(currentSentence.en, 'en')}
@@ -113,7 +113,7 @@ export default function LanguageLearning() {
 
           <div className="pt-6 border-t border-gray-800/50">
             <div className="flex items-center justify-between mb-3">
-              <p className="text-sm font-medium bg-gradient-to-r from-purple-400 to-purple-300 text-transparent bg-clip-text">Korean</p>
+              <p className="text-lg font-medium bg-gradient-to-r from-purple-400 to-purple-300 text-transparent bg-clip-text">Korean</p>
               {currentSentence?.ko && (
                 <motion.button
                   onClick={() => speakText(currentSentence.ko, 'ko')}
