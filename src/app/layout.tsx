@@ -5,15 +5,17 @@ import "./globals.css";
 const inter = Inter({
   subsets: ["latin"],
   display: "swap",
+  variable: '--font-inter',
 });
 
 const robotoMono = Roboto_Mono({
   subsets: ["latin"],
   display: "swap",
+  variable: '--font-roboto-mono',
 });
 
 export const metadata: Metadata = {
-  title: "Pro Task Manager",
+  title: "조프로의 Todo List",
   description: "Manage your tasks efficiently with real-time weather updates",
 };
 
@@ -23,11 +25,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko">
-      <body className={`${inter.className} antialiased`}>
-        <div className={`${robotoMono.className} font-mono`}>
-          {children}
-        </div>
+    <html lang="ko" className={`${inter.variable} ${robotoMono.variable}`}>
+      <body className="antialiased">
+        {children}
       </body>
     </html>
   );

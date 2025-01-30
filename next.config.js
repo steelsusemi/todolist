@@ -11,7 +11,14 @@ const nextConfig = {
   compiler: {
     // Framer Motion 애니메이션 최적화
     styledComponents: true,
-    removeConsole: process.env.NODE_ENV === 'production',
+  },
+  // 실험적 기능 활성화
+  experimental: {
+    appDir: true,
+  },
+  webpack: (config) => {
+    config.resolve.fallback = { fs: false };
+    return config;
   },
 };
 

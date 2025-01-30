@@ -3,6 +3,7 @@
 import Clock from '@/components/Clock';
 import Weather from '@/components/Weather';
 import TodoList from '@/components/TodoList';
+import LanguageLearning from '@/components/LanguageLearning';
 import { motion } from 'framer-motion';
 import { Montserrat } from 'next/font/google';
 
@@ -25,7 +26,7 @@ export default function Home() {
             className={`text-5xl font-bold ${montserrat.className} tracking-tight`}
           >
             <span className="bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 text-transparent bg-clip-text">
-              Pro Task Manager
+              조프로의 Todo List
             </span>
           </motion.h1>
           <motion.p
@@ -57,6 +58,13 @@ export default function Home() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.6 }}
+        >
+          <LanguageLearning />
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.8 }}
         >
           <TodoList />
         </motion.div>
